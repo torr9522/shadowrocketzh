@@ -19,7 +19,7 @@ There are 48 external `RULE-SET` references in `shadowrocketzh.conf` and no exte
 
 All 48 downloaded rule files contain no `DIRECT`, `PROXY`, `Max` or other strategy field. The `no-resolve` suffix on IP rules is an option, not a policy. The policy is supplied by the third field of the configuration `RULE-SET` line.
 
-`Migration` is an architecture recommendation. `Status` is the provider freshness or lifecycle state; `ch-domain-direct` is `CONVERT_AND_MAINTAIN` and `TESTING / UAT`.
+`Migration` is an architecture recommendation. `Status` is the provider freshness or lifecycle state; `ai-proxy` and `ch-domain-direct` are `CONVERT_AND_MAINTAIN` and `TESTING / UAT`.
 
 ### Domestic DIRECT
 
@@ -51,7 +51,7 @@ All 48 downloaded rule files contain no `DIRECT`, `PROXY`, `Max` or other strate
 
 | Config line | Rule | Policy | Current config URL | Format / type | Count actual/header | Actual types | File UPDATED | Latest file commit | Current SHA256 | Companions | Status | Migration |
 |---:|---|---|---|---|---:|---|---|---|---|---|---|---|
-| 300 | AI | PROXY | https://raw.githubusercontent.com/iab0x00/ProxyRules/main/Rule/AI.txt | Custom; Shadowrocket-compatible syntax not declared as native | 49/N/A | DOMAIN 22; DOMAIN-SUFFIX 23; DOMAIN-KEYWORD 4 | N/A | `cf90a1c67e337515a07405986c637fda0e9e52a3` 2026-04-05 | `764e56f680ed307a3d6648c9be5fc1e6e7842b3d12c70b8374c9f7c3d4b80297` | None found | SLOW | MANUAL_REVIEW |
+| 300 | ai-proxy | PROXY | https://raw.githubusercontent.com/torr9522/shadowrocketzh/main/rules/ai-proxy.list | Shadowrocket RULE-SET converted from iab0x00 custom syntax | 42/N/A | DOMAIN 16; DOMAIN-SUFFIX 22; DOMAIN-KEYWORD 4 | N/A | `cf90a1c67e337515a07405986c637fda0e9e52a3` 2026-04-05T16:39:05Z | `238d4edb227f158005255631779f6e2cb263abefd0887b2394402fb403162a1a` | None found | TESTING / UAT | CONVERT_AND_MAINTAIN |
 | 301 | YouTube | PROXY | https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/YouTube/YouTube.list | Shadowrocket RULE-SET | 190/190 | DOMAIN 0; DOMAIN-SUFFIX 179; DOMAIN-KEYWORD 1; IP-CIDR 3; USER-AGENT 7 | 2025-06-06 | `0fa60782abfe70f58da510e90d9086136cf0d855` 2025-06-17 | `f764cd91a779982225b3553ece8033c86a6545f4990f5fefd356805de962aee9` | YouTube_Resolve.list | STALE | KEEP_UPSTREAM |
 | 302 | Netflix | PROXY | https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Netflix/Netflix.list | Shadowrocket RULE-SET | 1157/1157 | DOMAIN 3; DOMAIN-SUFFIX 30; DOMAIN-KEYWORD 4; IP-CIDR 1119; USER-AGENT 1 | 2025-06-06 | `0fa60782abfe70f58da510e90d9086136cf0d855` 2025-06-17 | `ec37f90727e7db062d754487c4bed68ae8bba28f349aef0995f10c06f5e8b231` | Netflix_Resolve.list | STALE | KEEP_UPSTREAM |
 | 303 | Disney | PROXY | https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Disney/Disney.list | Shadowrocket RULE-SET | 173/173 | DOMAIN-SUFFIX 172; USER-AGENT 1 | 2025-07-30 | `a75313d36b049b8aca5b26beffafb1b0ec8c564d` 2025-12-21 | `65ededc7b608e440f3d918f6e95b19ca52460c8fe368dbd9e840b4bc8669f753` | None found | STALE | KEEP_UPSTREAM |
@@ -99,12 +99,31 @@ All 48 downloaded rule files contain no `DIRECT`, `PROXY`, `Max` or other strate
 - File `Rule/AI.txt` latest file commit: `cf90a1c67e337515a07405986c637fda0e9e52a3`, 2026-04-05.
 - The file uses common rule lines but does not declare a native Shadowrocket directory or generated header. Treat its platform semantics as custom/compatible, not proven native.
 
+### ai-proxy
+
+Name: `ai-proxy`
+Purpose: International AI services excluding separately managed Apple traffic
+Policy: `PROXY`
+Local provider URL: https://raw.githubusercontent.com/torr9522/shadowrocketzh/main/rules/ai-proxy.list
+Upstream URL: https://raw.githubusercontent.com/iab0x00/ProxyRules/main/Rule/AI.txt
+Upstream commit: `cf90a1c67e337515a07405986c637fda0e9e52a3`
+Upstream commit date: `2026-04-05T16:39:05Z`
+Upstream SHA256: `764e56f680ed307a3d6648c9be5fc1e6e7842b3d12c70b8374c9f7c3d4b80297`
+Local SHA256: `238d4edb227f158005255631779f6e2cb263abefd0887b2394402fb403162a1a`
+Rule count: 42 (`DOMAIN` 16; `DOMAIN-SUFFIX` 22; `DOMAIN-KEYWORD` 4)
+Conversion: preserve upstream non-Apple rule lines and add a Shadowrocket RULE-SET header; no policy fields are embedded.
+Excluded from AI Provider: `smoot.apple.com`, `apple-relay.apple.com`, `apple-relay.cloudflare.com`, `apple-relay.fastly-edge.com`, `cp4.cloudflare.com`, `gspe1-ssl.ls.apple.com`, `guzzoni.apple.com`.
+Status: `TESTING / UAT`
+Migration: `CONVERT_AND_MAINTAIN`
+Notes: Apple-owned hosts fall through to the Apple providers; third-party relay infrastructure falls through to Global/IP/GEOIP/FINAL according to the runtime match.
+
 ### Local providers
 
 | Provider | Source and conversion | Local commit | Local SHA256 | Notes |
 |---|---|---|---|---|
 | apple-direct | blackmatrix7 `Apple.list` + `Apple_Domain.list`; bare domains were converted to `DOMAIN-SUFFIX`/`DOMAIN` and merged | `46aa0b281f4700b0dd4424f2dd084036ab514bd6` | `566d3d78f8924d6367bfac635b0495119545ab5b7f2ff4f73327ebdcb2e7e196` | Conversion is intentional; upstream Apple source must be re-audited before regeneration |
 | apple-proxy | Curated three-domain subset from blackmatrix7 AppleProxy/iCloudPrivateRelay | `46aa0b281f4700b0dd4424f2dd084036ab514bd6` | `c17cd7d37f4deef1c826d4a5eac3e8ae8bbf2824727aaf85dfe0cb3704ca8e08` | Deliberately not a full mirror |
+| ai-proxy | iab0x00 `Rule/AI.txt`; all non-Apple rules retained and seven audited Apple hosts excluded | Pending commit | `238d4edb227f158005255631779f6e2cb263abefd0887b2394402fb403162a1a` | Local native RULE-SET conversion; Apple traffic is handled separately |
 | ch-extra-direct | One locally verified `DOMAIN,pubsub02.oray.net` rule | `dce9c2aa74008a0ce06fc227c1d39ce8487b6af3` | `d79fc7ad61ac4469cc7323e2ba2609246851232d6dd50ca2376ca7f22a08e01e` | Local evidence policy; no upstream file |
 
 ### ch-domain-direct

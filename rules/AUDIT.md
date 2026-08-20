@@ -5,12 +5,12 @@ Audit date: 2026-08-20
 ## Executive Summary
 
 - `shadowrocketzh.conf` contains 48 external `RULE-SET` references and 0 external `DOMAIN-SET` references.
-- 43 references come from `blackmatrix7/ios_rule_script`, 1 from `iab0x00/ProxyRules`, and 4 from the local `shadowrocketzh` repository.
+- 43 references come from `blackmatrix7/ios_rule_script`, 0 from `iab0x00/ProxyRules`, and 5 from the local `shadowrocketzh` repository.
 - All 43 blackmatrix references use the `rule/Shadowrocket/` path. No `QuantumultX`, Clash or Surge path was found in the current configuration.
 - All 48 URLs returned HTTP 200 during the source audit; the local `ch-domain-direct` URL returned HTTP 200 after push.
-- Current file-level freshness is `ACTIVE 3`, `SLOW 4`, `STALE 37`, `UNKNOWN 3`, plus `TESTING / UAT 1` for the local China companion. This is file-level status, not repository-level status.
+- Current file-level freshness is `ACTIVE 3`, `SLOW 3`, `STALE 37`, `UNKNOWN 3`, plus `TESTING / UAT 2` for the local AI and China companions. This is file-level status, not repository-level status.
 - Several providers intentionally split their generated output: the main `RULE-SET` file contains IP/USER-AGENT/keyword rules while `_Domain.list` contains bare domains. For example, Tencent is 25 main-file rules plus 2,498 domain-set entries = 2,523; Alibaba is 57 + 1,263 = 1,320; Global is 198 + 34,852 = 35,050; China is 63 + 3,689 = 3,752. The current configuration still loads only the main file for providers without a companion UAT; China is the exception under the separate `ch-domain-direct` test recorded below.
-- The current ordering is intentionally whitelist-first for domestic DIRECT and exception-first for Apple: domestic rules, international rules, Apple proxy, Apple direct, Global PROXY, China DIRECT, `ch-domain-direct` UAT, Lan, GEOIP and FINAL.
+- The current ordering is intentionally whitelist-first for domestic DIRECT and exception-first for Apple: domestic rules, local `ai-proxy` and other international rules, Apple proxy, Apple direct, Global PROXY, China DIRECT, `ch-domain-direct` UAT, Lan, GEOIP and FINAL.
 
 ## Current Architecture
 
@@ -25,7 +25,7 @@ The effective rule groups, in order, are:
 7. China DIRECT, the `ch-domain-direct` China companion UAT, and Lan DIRECT.
 8. Local IP rules, `GEOIP,CN,DIRECT`, then `FINAL,PROXY`.
 
-Rules are first-match based. Therefore the placement of `AI` before Apple is significant: AI can claim Apple Intelligence/Siri-related hosts before the later Apple providers.
+Rules are first-match based. Therefore the placement of local `ai-proxy` before Apple remains significant for any future non-excluded overlap; the seven audited Apple hosts are no longer claimed by this provider.
 
 ## Current External Dependencies
 
@@ -34,12 +34,12 @@ The complete row-by-row registry, URL, policy, position, counts, file SHA256, co
 | Source | References | Policies | Format |
 |---|---:|---|---|
 | blackmatrix7/ios_rule_script | 43 | DIRECT, PROXY, Max | Shadowrocket RULE-SET paths |
-| iab0x00/ProxyRules | 1 | PROXY | Custom file, common rule syntax; native platform declaration not found |
-| torr9522/shadowrocketzh | 4 | DIRECT, PROXY | Locally maintained Shadowrocket RULE-SET |
+| iab0x00/ProxyRules | 0 | N/A | Upstream source for local converted provider |
+| torr9522/shadowrocketzh | 5 | DIRECT, PROXY | Locally maintained Shadowrocket RULE-SET |
 
-Migration rating counts: `KEEP_UPSTREAM` 39; `MIRROR_AND_TRACK` 0; `CONVERT_AND_MAINTAIN` 3; `MERGE_INTO_CUSTOM` 1; `REMOVE_OR_REDUNDANT` 3; `MANUAL_REVIEW` 2.
+Migration rating counts: `KEEP_UPSTREAM` 39; `MIRROR_AND_TRACK` 0; `CONVERT_AND_MAINTAIN` 4; `MERGE_INTO_CUSTOM` 1; `REMOVE_OR_REDUNDANT` 3; `MANUAL_REVIEW` 1.
 
-Migration is an architecture recommendation. `Status` is the provider freshness or lifecycle state; for example, `ch-domain-direct` is `CONVERT_AND_MAINTAIN` and `TESTING / UAT`.
+Migration is an architecture recommendation. `Status` is the provider freshness or lifecycle state; `ai-proxy` and `ch-domain-direct` are `CONVERT_AND_MAINTAIN` and `TESTING / UAT`.
 
 ## Compatibility Findings
 
@@ -50,12 +50,13 @@ Migration is an architecture recommendation. `Status` is the provider freshness 
 - The blackmatrix files use supported rule lines such as `DOMAIN`, `DOMAIN-SUFFIX`, `DOMAIN-KEYWORD`, `USER-AGENT`, `IP-CIDR`, `IP-CIDR6`/IPv6 CIDR, and `IP-ASN`.
 - No downloaded current provider included a trailing policy field such as `,DIRECT` or `,PROXY`.
 - The local Apple provider has already converted the upstream bare-domain set into Shadowrocket rule syntax.
+- The local `ai-proxy.list` is a minimal conversion of the upstream AI file; it adds a native RULE-SET header, preserves non-Apple semantics and embeds no policy fields.
 - `China_Domain.list` is also a bare-domain companion, but this UAT converts it into `rules/ch-domain-direct.list` and references that file as a native Shadowrocket `RULE-SET` with `DIRECT`.
 
 ### Compatibility risks
 
 - `Apple_Domain.list` is a bare-domain set upstream and must not be referenced as `RULE-SET` without conversion. The local `apple-direct.list` is the existing conversion.
-- `iab0x00/ProxyRules/Rule/AI.txt` has no Shadowrocket-specific path or generated format declaration. Its individual lines are syntactically compatible with the current parser, but platform semantics remain `MANUAL_REVIEW`.
+- The upstream `iab0x00/ProxyRules/Rule/AI.txt` has no Shadowrocket-specific path or generated format declaration. The local `ai-proxy.list` adds a native RULE-SET header, preserves all 42 non-Apple rules, and excludes the seven audited Apple hosts. Upstream changes still require review.
 - `Amazon.list` contains a `URL-REGEX` rule and its upstream header explicitly recommends MITM. This is not a syntax failure, but it is a behavior dependency that should be tested separately.
 - Companion `_Domain.list` files are bare-domain sets and companion `_Resolve.list` files are rule-form variants. China is currently tested through the converted `ch-domain-direct` `RULE-SET`; Global still uses only its main rule-form file. Whether a companion improves matching depends on Shadowrocket DNS mode and must be tested, not assumed.
 - For split providers, the header `TOTAL` is authoritative only when the main file and its documented companion are considered together. The companion should be audited before claiming full domain coverage.
@@ -92,7 +93,7 @@ These are not automatic deletion recommendations. For example, `Game` may be bro
 ### International overlap observations
 
 - `Nintendo`, `Epic`, `SteamCN` and `Steam` are subsets of `Game` at the measured domain level. Future deletion requires testing because `Game` is a broad aggregate and order can encode intent.
-- `AI` overlaps `Google`, `Microsoft`, `GitHub`, `Twitter` and the local Apple direct provider. These overlaps are expected for service infrastructure but can alter policy because AI is earlier.
+- The upstream AI source overlapped `Google`, `Microsoft`, `GitHub`, `Twitter` and the local Apple direct provider. The local `ai-proxy` conversion retains only non-Apple rules, so the seven audited Apple overlaps are intentionally removed.
 - `YouTube` overlaps `Google`; `Netflix` and `HBO` overlap a small number of Amazon/Microsoft/Disney entries.
 - `Global` was compared by domain suffix semantics against the other downloaded domain rules. No direct Apple-China domain conflict was found by this limited domain-only calculation, but its keyword, IP and USER-AGENT rules were not treated as suffix coverage.
 
@@ -107,21 +108,21 @@ RULE-SET,https://raw.githubusercontent.com/torr9522/shadowrocketzh/main/rules/ap
 
 The proxy provider contains exactly three Private Relay host rules. The direct provider contains 1,603 converted rules: 9 DOMAIN, 1,551 DOMAIN-SUFFIX, 7 DOMAIN-KEYWORD, 13 IP-CIDR and 23 USER-AGENT.
 
-The current `AI` file contains these Apple-related entries:
+The upstream `AI.txt` contained these Apple-related entries; they are excluded from the current local `ai-proxy` provider:
 
 | Entry | AI section | Local Apple direct relation | Assessment |
 |---|---|---|---|
-| `smoot.apple.com` | Apple Intelligence | Covered by local Apple direct suffix rules | Policy conflict/grey area; AI PROXY wins because AI is earlier |
-| `apple-relay.apple.com` | Apple Intelligence | Covered by local Apple direct rules | Policy conflict/grey area; AI PROXY wins |
-| `apple-relay.cloudflare.com` | Apple Intelligence | Not in local Apple providers | AI PROXY wins |
-| `apple-relay.fastly-edge.com` | Apple Intelligence | Not in local Apple providers | AI PROXY wins |
-| `cp4.cloudflare.com` | Apple Intelligence | Not in local Apple providers | AI PROXY wins |
-| `gspe1-ssl.ls.apple.com` | Apple Intelligence | Covered by local Apple direct rules | Policy conflict/grey area; AI PROXY wins |
-| `guzzoni.apple.com` | Apple Intelligence | Covered by local Apple direct suffix rules | Siri/Apple Intelligence boundary requires manual product testing; AI PROXY wins |
+| `smoot.apple.com` | Apple Intelligence | Covered by local Apple direct suffix rules | Excluded; falls through to Apple direct |
+| `apple-relay.apple.com` | Apple Intelligence | Covered by local Apple direct rules | Excluded; falls through to Apple direct |
+| `apple-relay.cloudflare.com` | Apple Intelligence | Not in local Apple providers | Excluded; falls through to later runtime matching |
+| `apple-relay.fastly-edge.com` | Apple Intelligence | Not in local Apple providers | Excluded; falls through to later runtime matching |
+| `cp4.cloudflare.com` | Apple Intelligence | Not in local Apple providers | Excluded; falls through to later runtime matching |
+| `gspe1-ssl.ls.apple.com` | Apple Intelligence | Covered by local Apple direct rules | Excluded; falls through to Apple direct |
+| `guzzoni.apple.com` | Apple Intelligence | Covered by local Apple direct suffix rules | Excluded; falls through to Apple direct |
 
-The evidence establishes ordering and overlap, not that every Apple Intelligence host should be DIRECT or PROXY. Do not resolve this by broadening `apple.com` or by deleting AI entries without a real device test.
+The evidence establishes ordering and overlap, not that every Apple Intelligence host should be DIRECT or PROXY. The local conversion now excludes the seven audited Apple hosts; this is a UAT conversion, not a production migration conclusion.
 
-Recommended future review: split Apple Intelligence from the broad AI provider or add a separately documented policy layer. This is a design review, not a change made in this audit.
+The Apple traffic split is now implemented only in the test repository. A production sync still requires UAT of the local non-Apple provider and separate Apple behavior validation.
 
 ## China / Global Findings
 
@@ -144,10 +145,10 @@ No production migration conclusion is made yet. The current next step is to coll
 | Status | Count | Meaning |
 |---|---:|---|
 | ACTIVE | 3 | Game, Global, China had file commits in the last 90 days |
-| SLOW | 4 | AI, Nintendo, Google, Lan had file commits 90-180 days ago |
+| SLOW | 3 | Nintendo, Google, Lan had file commits 90-180 days ago |
 | STALE | 37 | Other upstream files had no file commit in over 180 days |
 | UNKNOWN | 3 | Local providers do not have upstream file-level freshness semantics |
-| TESTING / UAT | 1 | `ch-domain-direct` China companion conversion under test |
+| TESTING / UAT | 2 | `ai-proxy` and `ch-domain-direct` companion conversions under test |
 
 The repositories themselves are active: blackmatrix7 HEAD was 2026-08-19 and iab0x00 HEAD was 2026-08-19/20 depending on branch metadata. A stale individual rule file is therefore not evidence that its repository is abandoned.
 
@@ -166,7 +167,7 @@ The repositories themselves are active: blackmatrix7 HEAD was 2026-08-19 and iab
 
 - Collect Shadowrocket `.db` results for `ch-domain-direct` and verify whether the China companion improves explicit DIRECT matches without incorrect DIRECT routing.
 - Confirm the actual downloaded branch/ref and use the combined main-plus-companion counts when comparing source updates.
-- Validate `AI.txt` platform semantics before relying on it for Apple Intelligence routing.
+- Track upstream `AI.txt` by commit and hash, and test the local non-Apple conversion before any production sync.
 
 ### P1
 
@@ -191,14 +192,15 @@ The repositories themselves are active: blackmatrix7 HEAD was 2026-08-19 and iab
 - Do not replace China/Global with broad custom copies while their generated count discrepancy is unresolved.
 - Do not merge IP-heavy providers into a domain-only custom list; that would change semantics.
 - Do not remove Nintendo, Epic, SteamCN, Steam or app-specific rules solely from domain overlap percentages.
-- Do not treat the iab0x00 AI file as a proven native Shadowrocket provider without a format/source review.
+- Do not sync the local `ai-proxy` conversion to production until its non-Apple behavior and upstream refresh process are tested.
 
 ## Proposed Provider Layout
 
-This is a future design sketch only. No files were created or changed by this audit:
+This is the provider layout after the test migration; production sync remains pending:
 
 ```text
 rules/
+  ai-proxy.list
   apple-direct.list
   apple-proxy.list
   ch-extra-direct.lis
@@ -207,7 +209,7 @@ rules/
   AUDIT.md
 ```
 
-No additional provider is recommended until the P0/P1 items are resolved.
+No additional provider is recommended until the P0/P1 items are resolved; `ai-proxy` is the only new local provider created by this migration.
 
 ## Evidence URLs
 
@@ -219,6 +221,7 @@ No additional provider is recommended until the P0/P1 items are resolved.
 - blackmatrix7 Shadowrocket Global: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Global/Global.list
 - blackmatrix7 Shadowrocket Global Domain: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Global/Global_Domain.list
 - iab0x00 AI: https://raw.githubusercontent.com/iab0x00/ProxyRules/main/Rule/AI.txt
+- local ai-proxy: https://raw.githubusercontent.com/torr9522/shadowrocketzh/main/rules/ai-proxy.list
 - Apple support entry point: https://support.apple.com/
 
 ## ch-domain-direct UAT
