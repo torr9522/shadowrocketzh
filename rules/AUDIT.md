@@ -215,3 +215,12 @@ No additional provider is recommended until the P0/P1 items are resolved.
 - blackmatrix7 Shadowrocket Global Domain: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Global/Global_Domain.list
 - iab0x00 AI: https://raw.githubusercontent.com/iab0x00/ProxyRules/main/Rule/AI.txt
 - Apple support entry point: https://support.apple.com/
+
+## ch-domain-direct UAT
+
+- Baseline: the configuration previously used only `China.list` for the China DIRECT layer.
+- This UAT adds `rules/ch-domain-direct.list`, converted from the current `China_Domain.list` companion.
+- The source was checked directly and has file-level commit `4448e02fd1149a51f9291ba89e259d8d1ed512a7`, dated `2026-06-21T18:41:08Z`, with SHA256 `d35eec789ae09a6d2b6dd48ed2c52d6d811f433b1e73a92b2f9246b778fa7923`.
+- The converted provider contains 3,689 rules: 17 exact `DOMAIN` rules and 3,672 `DOMAIN-SUFFIX` rules. The conversion has no policy field and is referenced with `DIRECT`.
+- Global companion testing has not been performed. This is a single-variable China UAT and does not represent a production migration conclusion.
+- UAT observations should focus on whether `GEOIP,CN,DIRECT` fallback hits decrease, explicit domain DIRECT hits increase, and any incorrect DIRECT routing appears.

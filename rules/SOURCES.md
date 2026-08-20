@@ -15,9 +15,9 @@ The `Count` field below is parsed from the downloaded file after comments and bl
 
 ## Current Providers
 
-There are 47 external `RULE-SET` references in `shadowrocketzh.conf` and no external `DOMAIN-SET` references.
+There are 48 external `RULE-SET` references in `shadowrocketzh.conf` and no external `DOMAIN-SET` references.
 
-All 47 downloaded rule files contain no `DIRECT`, `PROXY`, `Max` or other strategy field. The `no-resolve` suffix on IP rules is an option, not a policy. The policy is supplied by the third field of the configuration `RULE-SET` line.
+All 48 downloaded rule files contain no `DIRECT`, `PROXY`, `Max` or other strategy field. The `no-resolve` suffix on IP rules is an option, not a policy. The policy is supplied by the third field of the configuration `RULE-SET` line.
 
 ### Domestic DIRECT
 
@@ -103,5 +103,21 @@ All 47 downloaded rule files contain no `DIRECT`, `PROXY`, `Max` or other strate
 | apple-direct | blackmatrix7 `Apple.list` + `Apple_Domain.list`; bare domains were converted to `DOMAIN-SUFFIX`/`DOMAIN` and merged | `46aa0b281f4700b0dd4424f2dd084036ab514bd6` | `566d3d78f8924d6367bfac635b0495119545ab5b7f2ff4f73327ebdcb2e7e196` | Conversion is intentional; upstream Apple source must be re-audited before regeneration |
 | apple-proxy | Curated three-domain subset from blackmatrix7 AppleProxy/iCloudPrivateRelay | `46aa0b281f4700b0dd4424f2dd084036ab514bd6` | `c17cd7d37f4deef1c826d4a5eac3e8ae8bbf2824727aaf85dfe0cb3704ca8e08` | Deliberately not a full mirror |
 | ch-extra-direct | One locally verified `DOMAIN,pubsub02.oray.net` rule | `dce9c2aa74008a0ce06fc227c1d39ce8487b6af3` | `d79fc7ad61ac4469cc7323e2ba2609246851232d6dd50ca2376ca7f22a08e01e` | Local evidence policy; no upstream file |
+
+### ch-domain-direct
+
+Name: `ch-domain-direct`
+Purpose: China domain companion UAT
+Policy: `DIRECT`
+Local provider URL: https://raw.githubusercontent.com/torr9522/shadowrocketzh/main/rules/ch-domain-direct.list
+Upstream URL: https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/China/China_Domain.list
+Upstream commit: `4448e02fd1149a51f9291ba89e259d8d1ed512a7`
+Upstream commit date: `2026-06-21T18:41:08Z`
+Upstream SHA256: `d35eec789ae09a6d2b6dd48ed2c52d6d811f433b1e73a92b2f9246b778fa7923`
+Local SHA256: `76044df0ab8718259f4b432d77b0c0bd6686bee1dc5197acdd5e578637fb9961`
+Rule count: 3,689 (`DOMAIN` 17; `DOMAIN-SUFFIX` 3,672)
+Conversion: bare DomainSet entries beginning with `.` become `DOMAIN-SUFFIX`; entries without a leading `.` become exact `DOMAIN` rules.
+Status: `TESTING / UAT`
+Notes: This is a single-variable China companion test. The previous audit recorded the same China file-level commit; it did not record a separate `China_Domain.list` SHA256, so no unverified old companion hash is asserted.
 
 Local Apple source SHAs tracked at audit time: `Apple.list` = `24e571ee44747a3adf1b3c618102fc9d2b1b61cd` (2026-08-17), `Apple_Domain.list` = `95b659bd281b538e23dc8c00c3084a06f8a9bbed` (2026-03-05), `AppleProxy.list` = `0fa60782abfe70f58da510e90d9086136cf0d855` (2025-06-17), and `iCloudPrivateRelay.list` = `1aa69f3eeef202e5b508ca19a33fdf7f5ff6acd9` (2024-02-02).
