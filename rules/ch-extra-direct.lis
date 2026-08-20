@@ -1,0 +1,5 @@
+# NAME: ch-extra-direct
+# FORMAT: Shadowrocket RULE-SET
+# Purpose: Verified CN services not covered by dedicated providers
+
+DOMAIN,pubsub02.oray.net
