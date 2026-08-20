@@ -4,13 +4,13 @@ Audit date: 2026-08-20
 
 ## Executive Summary
 
-- `shadowrocketzh.conf` contains 47 external `RULE-SET` references and 0 external `DOMAIN-SET` references.
-- 43 references come from `blackmatrix7/ios_rule_script`, 1 from `iab0x00/ProxyRules`, and 3 from the local `shadowrocketzh` repository.
+- `shadowrocketzh.conf` contains 48 external `RULE-SET` references and 0 external `DOMAIN-SET` references.
+- 43 references come from `blackmatrix7/ios_rule_script`, 1 from `iab0x00/ProxyRules`, and 4 from the local `shadowrocketzh` repository.
 - All 43 blackmatrix references use the `rule/Shadowrocket/` path. No `QuantumultX`, Clash or Surge path was found in the current configuration.
-- All 47 URLs returned HTTP 200 during this audit.
-- Current file-level freshness is `ACTIVE 3`, `SLOW 4`, `STALE 37`, `UNKNOWN 3`. This is file-level status, not repository-level status.
-- Several providers intentionally split their generated output: the main `RULE-SET` file contains IP/USER-AGENT/keyword rules while `_Domain.list` contains bare domains. For example, Tencent is 25 main-file rules plus 2,498 domain-set entries = 2,523; Alibaba is 57 + 1,263 = 1,320; Global is 198 + 34,852 = 35,050; China is 63 + 3,689 = 3,752. The important finding is that the current configuration loads only the main file for these providers, not the domain companion.
-- The current ordering is intentionally whitelist-first for domestic DIRECT and exception-first for Apple: domestic rules, international rules, Apple proxy, Apple direct, Global PROXY, China DIRECT, Lan, GEOIP and FINAL.
+- All 48 URLs returned HTTP 200 during the source audit; the local `ch-domain-direct` URL returned HTTP 200 after push.
+- Current file-level freshness is `ACTIVE 3`, `SLOW 4`, `STALE 37`, `UNKNOWN 3`, plus `TESTING / UAT 1` for the local China companion. This is file-level status, not repository-level status.
+- Several providers intentionally split their generated output: the main `RULE-SET` file contains IP/USER-AGENT/keyword rules while `_Domain.list` contains bare domains. For example, Tencent is 25 main-file rules plus 2,498 domain-set entries = 2,523; Alibaba is 57 + 1,263 = 1,320; Global is 198 + 34,852 = 35,050; China is 63 + 3,689 = 3,752. The current configuration still loads only the main file for providers without a companion UAT; China is the exception under the separate `ch-domain-direct` test recorded below.
+- The current ordering is intentionally whitelist-first for domestic DIRECT and exception-first for Apple: domestic rules, international rules, Apple proxy, Apple direct, Global PROXY, China DIRECT, `ch-domain-direct` UAT, Lan, GEOIP and FINAL.
 
 ## Current Architecture
 
@@ -22,7 +22,7 @@ The effective rule groups, in order, are:
 4. International service PROXY providers and the HBO `Max` provider.
 5. Local Apple proxy exceptions before local Apple direct rules.
 6. Global PROXY.
-7. China DIRECT and Lan DIRECT.
+7. China DIRECT, the `ch-domain-direct` China companion UAT, and Lan DIRECT.
 8. Local IP rules, `GEOIP,CN,DIRECT`, then `FINAL,PROXY`.
 
 Rules are first-match based. Therefore the placement of `AI` before Apple is significant: AI can claim Apple Intelligence/Siri-related hosts before the later Apple providers.
@@ -35,9 +35,11 @@ The complete row-by-row registry, URL, policy, position, counts, file SHA256, co
 |---|---:|---|---|
 | blackmatrix7/ios_rule_script | 43 | DIRECT, PROXY, Max | Shadowrocket RULE-SET paths |
 | iab0x00/ProxyRules | 1 | PROXY | Custom file, common rule syntax; native platform declaration not found |
-| torr9522/shadowrocketzh | 3 | DIRECT, PROXY | Locally maintained Shadowrocket RULE-SET |
+| torr9522/shadowrocketzh | 4 | DIRECT, PROXY | Locally maintained Shadowrocket RULE-SET |
 
-Migration rating counts: `KEEP_UPSTREAM` 39; `MIRROR_AND_TRACK` 0; `CONVERT_AND_MAINTAIN` 2; `MERGE_INTO_CUSTOM` 1; `REMOVE_OR_REDUNDANT` 3; `MANUAL_REVIEW` 2.
+Migration rating counts: `KEEP_UPSTREAM` 39; `MIRROR_AND_TRACK` 0; `CONVERT_AND_MAINTAIN` 3; `MERGE_INTO_CUSTOM` 1; `REMOVE_OR_REDUNDANT` 3; `MANUAL_REVIEW` 2.
+
+Migration is an architecture recommendation. `Status` is the provider freshness or lifecycle state; for example, `ch-domain-direct` is `CONVERT_AND_MAINTAIN` and `TESTING / UAT`.
 
 ## Compatibility Findings
 
@@ -48,13 +50,14 @@ Migration rating counts: `KEEP_UPSTREAM` 39; `MIRROR_AND_TRACK` 0; `CONVERT_AND_
 - The blackmatrix files use supported rule lines such as `DOMAIN`, `DOMAIN-SUFFIX`, `DOMAIN-KEYWORD`, `USER-AGENT`, `IP-CIDR`, `IP-CIDR6`/IPv6 CIDR, and `IP-ASN`.
 - No downloaded current provider included a trailing policy field such as `,DIRECT` or `,PROXY`.
 - The local Apple provider has already converted the upstream bare-domain set into Shadowrocket rule syntax.
+- `China_Domain.list` is also a bare-domain companion, but this UAT converts it into `rules/ch-domain-direct.list` and references that file as a native Shadowrocket `RULE-SET` with `DIRECT`.
 
 ### Compatibility risks
 
 - `Apple_Domain.list` is a bare-domain set upstream and must not be referenced as `RULE-SET` without conversion. The local `apple-direct.list` is the existing conversion.
 - `iab0x00/ProxyRules/Rule/AI.txt` has no Shadowrocket-specific path or generated format declaration. Its individual lines are syntactically compatible with the current parser, but platform semantics remain `MANUAL_REVIEW`.
 - `Amazon.list` contains a `URL-REGEX` rule and its upstream header explicitly recommends MITM. This is not a syntax failure, but it is a behavior dependency that should be tested separately.
-- Companion `_Domain.list` files are bare-domain sets and companion `_Resolve.list` files are rule-form variants. The current config uses only the main rule-form files. Whether a companion improves matching depends on Shadowrocket DNS mode and must be tested, not assumed.
+- Companion `_Domain.list` files are bare-domain sets and companion `_Resolve.list` files are rule-form variants. China is currently tested through the converted `ch-domain-direct` `RULE-SET`; Global still uses only its main rule-form file. Whether a companion improves matching depends on Shadowrocket DNS mode and must be tested, not assumed.
 - For split providers, the header `TOTAL` is authoritative only when the main file and its documented companion are considered together. The companion should be audited before claiming full domain coverage.
 
 ## Overlap Findings
@@ -125,16 +128,16 @@ Recommended future review: split Apple Intelligence from the broad AI provider o
 ### Current files
 
 - `Global.list`: 198 parsed lines in the current download, plus 34,852 entries in `Global_Domain.list`; the combined header total is 35,050. It also has `Global_Resolve.list`.
-- `China.list`: 63 parsed lines in the current download, plus 3,689 entries in `China_Domain.list`; the combined header total is 3,752. It also has `China_Resolve.list`.
+- `China.list`: 63 parsed lines in the current download, plus 3,689 entries in `China_Domain.list`; the combined header total is 3,752. It also has `China_Resolve.list`. The domain companion is currently represented by the converted `rules/ch-domain-direct.list` and is `TESTING / UAT`.
 - `China_Domain.list` is a bare-domain set; `China_Resolve.list` is rule syntax. The same distinction exists for Global.
-- The current configuration uses the main Shadowrocket `RULE-SET` files only. It does not use `DOMAIN-SET` companions.
+- `Global_Domain.list` has not been converted or loaded; the Global companion is `NOT TESTED`. The current configuration has no external `DOMAIN-SET` references.
 - Current historical paths `rule/Shadowrocket/China/ChinaMax.list` and `ChinaMaxNoIP.list` returned 404, so those names should not be added based on old documentation.
 
 ### Completeness conclusion
 
-The current `China`/`Global` main references are syntactically appropriate Shadowrocket RULE-SET files, but they are not the complete domain coverage represented by the upstream header. `China_Domain.list` and `Global_Domain.list` are bare-domain sets and would require `DOMAIN-SET` if loaded directly; `_Resolve` is rule-form and may duplicate the main file. Whether to load the domain companions must be tested under the exact Shadowrocket client mode.
+The current `China` and `Global` main references are syntactically appropriate Shadowrocket `RULE-SET` files. China has a converted companion in single-variable UAT, avoiding direct `DOMAIN-SET` use; Global remains main-only and its domain companion has not been tested. `_Resolve` files are rule-form variants and may duplicate the main file. Whether `ch-domain-direct` should be retained long term must wait for real Shadowrocket `.db` results.
 
-No custom migration is recommended yet. The higher-value next step is a controlled UAT comparison of the current main-only references against the main-plus-domain-companion design, without changing production first.
+No production migration conclusion is made yet. The current next step is to collect real Shadowrocket `.db` results for the China companion UAT; Global companion testing remains pending.
 
 ## Stale / Slow Rules
 
@@ -144,6 +147,7 @@ No custom migration is recommended yet. The higher-value next step is a controll
 | SLOW | 4 | AI, Nintendo, Google, Lan had file commits 90-180 days ago |
 | STALE | 37 | Other upstream files had no file commit in over 180 days |
 | UNKNOWN | 3 | Local providers do not have upstream file-level freshness semantics |
+| TESTING / UAT | 1 | `ch-domain-direct` China companion conversion under test |
 
 The repositories themselves are active: blackmatrix7 HEAD was 2026-08-19 and iab0x00 HEAD was 2026-08-19/20 depending on branch metadata. A stale individual rule file is therefore not evidence that its repository is abandoned.
 
@@ -152,7 +156,7 @@ The repositories themselves are active: blackmatrix7 HEAD was 2026-08-19 and iab
 1. Keep the current first-match order while collecting real Shadowrocket logs.
 2. Add a machine-readable audit script outside the configuration workflow to re-download each URL, compare file SHA256, query file-level commits and detect header/actual count drift.
 3. Treat `apple-proxy` before `apple-direct` as intentional precedence.
-4. Keep China and Global upstream until their generated count mismatch is explained.
+4. Keep `China.list` directly following upstream while evaluating the converted `ch-domain-direct` UAT; keep `Global.list` following upstream and leave `Global_Domain.list` pending testing.
 5. Review the AI Apple entries as a separate policy decision before changing any Apple rule.
 6. Consider consolidating only after UAT confirms that a broad aggregate provider preserves IP/USER-AGENT behavior.
 
@@ -160,14 +164,14 @@ The repositories themselves are active: blackmatrix7 HEAD was 2026-08-19 and iab
 
 ### P0
 
-- Confirm the split-provider generation model and whether the current main-only references intentionally omit domain companions for Tencent, Alibaba, Global, China and other affected providers.
+- Collect Shadowrocket `.db` results for `ch-domain-direct` and verify whether the China companion improves explicit DIRECT matches without incorrect DIRECT routing.
 - Confirm the actual downloaded branch/ref and use the combined main-plus-companion counts when comparing source updates.
 - Validate `AI.txt` platform semantics before relying on it for Apple Intelligence routing.
 
 ### P1
 
 - Test Apple Intelligence/Siri hosts from the AI list against real Shadowrocket logs.
-- Compare `China.list`/`Global.list` with their `_Domain` and `_Resolve` companions under the exact Shadowrocket client mode.
+- Test `Global.list` with its `_Domain`/`_Resolve` companions under the exact Shadowrocket client mode; the Global companion remains pending.
 - Re-evaluate `BiliBili`, `TencentVideo`, `NetEaseMusic`, `DouYin`, Nintendo, Epic, SteamCN and Steam because their measured domain overlap is high.
 
 ### P2
@@ -198,6 +202,7 @@ rules/
   apple-direct.list
   apple-proxy.list
   ch-extra-direct.lis
+  ch-domain-direct.list
   SOURCES.md
   AUDIT.md
 ```

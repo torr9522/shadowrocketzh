@@ -19,6 +19,8 @@ There are 48 external `RULE-SET` references in `shadowrocketzh.conf` and no exte
 
 All 48 downloaded rule files contain no `DIRECT`, `PROXY`, `Max` or other strategy field. The `no-resolve` suffix on IP rules is an option, not a policy. The policy is supplied by the third field of the configuration `RULE-SET` line.
 
+`Migration` is an architecture recommendation. `Status` is the provider freshness or lifecycle state; `ch-domain-direct` is `CONVERT_AND_MAINTAIN` and `TESTING / UAT`.
+
 ### Domestic DIRECT
 
 | Config line | Rule | Policy | Current config URL | Format / type | Count actual/header | Actual types | File UPDATED | Latest file commit | Current SHA256 | Companions | Status | Migration |
@@ -74,6 +76,7 @@ All 48 downloaded rule files contain no `DIRECT`, `PROXY`, `Max` or other strate
 | 325 | apple-direct | DIRECT | https://raw.githubusercontent.com/torr9522/shadowrocketzh/main/rules/apple-direct.list | Shadowrocket RULE-SET | 1603/N/A | DOMAIN 9; DOMAIN-SUFFIX 1551; DOMAIN-KEYWORD 7; IP-CIDR 13; USER-AGENT 23 | N/A | Local commit `46aa0b281f4700b0dd4424f2dd084036ab514bd6` 2026-08-19 | `566d3d78f8924d6367bfac635b0495119545ab5b7f2ff4f73327ebdcb2e7e196` | Source: blackmatrix7 Apple.list + Apple_Domain.list | UNKNOWN | CONVERT_AND_MAINTAIN |
 | 326 | Global | PROXY | https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Global/Global.list | Shadowrocket RULE-SET | 198/35050 | DOMAIN-KEYWORD 36; DOMAIN-SUFFIX 0; IP-CIDR 116; USER-AGENT 46 | 2026-08-20 | `ca20cf00887b50ec63de019317bec2a672c93ca9` 2026-08-19 | `103c2bda4d9f50f02d1acf87af3ab2277ae1601eb20cfe949aea3a113b3ce2e8` | Global_Domain.list; Global_Resolve.list | ACTIVE | KEEP_UPSTREAM |
 | 327 | China | DIRECT | https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/China/China.list | Shadowrocket RULE-SET | 63/3752 | DOMAIN-KEYWORD 9; DOMAIN-SUFFIX 2; IP-CIDR 21; USER-AGENT 31 | 2026-06-22 | `4448e02fd1149a51f9291ba89e259d8d1ed512a7` 2026-06-21 | `65477cd1e2917a8ca09ba08132e9d9131c54c0d9e1cfcba0be2eaa8ea1a04b75` | China_Domain.list; China_Resolve.list | ACTIVE | KEEP_UPSTREAM |
+| 328 | ch-domain-direct | DIRECT | https://raw.githubusercontent.com/torr9522/shadowrocketzh/main/rules/ch-domain-direct.list | Shadowrocket RULE-SET converted from bare DomainSet | 3689/N/A | DOMAIN 17; DOMAIN-SUFFIX 3672 | 2026-06-22 02:36:19 | `4448e02fd1149a51f9291ba89e259d8d1ed512a7` 2026-06-21 | `76044df0ab8718259f4b432d77b0c0bd6686bee1dc5197acdd5e578637fb9961` | Source: blackmatrix7 China_Domain.list | TESTING / UAT | CONVERT_AND_MAINTAIN |
 | 330 | Lan | DIRECT | https://raw.githubusercontent.com/blackmatrix7/ios_rule_script/master/rule/Shadowrocket/Lan/Lan.list | Shadowrocket RULE-SET | 140/140 | DOMAIN 7; DOMAIN-SUFFIX 115; IP-CIDR 18 | 2026-04-14 | `27aa5a20776e8283459ad26988fec5f50ef8654c` 2026-04-13 | `e524edec216ed7f2fa2f3eb3fe09fe70121acf88408c2394d19b3e2331c54de7` | Lan_Resolve.list | SLOW | KEEP_UPSTREAM |
 
 ## Upstream Notes
@@ -86,7 +89,7 @@ All 48 downloaded rule files contain no `DIRECT`, `PROXY`, `Max` or other strate
 - Repository API `pushed_at`: 2026-08-19T18:32:46Z.
 - The README describes rule, rewrite and automation projects but does not provide a reliable per-file daily update guarantee for these rule lists. File-level commit history is therefore authoritative for this audit.
 - The referenced upstream rule files contain no policy field; policy is supplied by the enclosing configuration `RULE-SET` line. The README does not provide a reliable per-file daily/regular update commitment for these exact files, so that field is treated as not declared for every blackmatrix row. The iab0x00 README likewise does not establish a per-file update schedule for `Rule/AI.txt`.
-- `China_Domain.list` and `Global_Domain.list` are bare-domain companion files. `China_Resolve.list` and `Global_Resolve.list` are rule-form companions. The current configuration references only `China.list` and `Global.list`.
+- `China_Domain.list` and `Global_Domain.list` are bare-domain companion files. `China_Resolve.list` and `Global_Resolve.list` are rule-form companions. The current configuration references `China.list` and `Global.list`; `China_Domain.list` is additionally represented by the converted `ch-domain-direct` UAT Provider, while the Global companion remains untested.
 - The current `ChinaMax.list` and `ChinaMaxNoIP.list` paths under `rule/Shadowrocket/China/` returned HTTP 404 during this audit. Do not assume those historical names remain available.
 
 ### iab0x00/ProxyRules
