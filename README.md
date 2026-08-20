@@ -16,7 +16,7 @@ https://github.com/torr9522/shadowrocket-config-single-file
 
 测试配置：
 
-https://raw.githubusercontent.com/torr9522/shadowrocketzh/main/shadowrocket.conf
+https://raw.githubusercontent.com/torr9522/shadowrocketzh/main/shadowrocketzh.conf
 
 Rules Provider：
 
